@@ -1,6 +1,6 @@
 # Call Fabric Client
 
-**SignalWire Call Fabric Client Beta** is a React-based web application designed to facilitate video conferencing and call management using the SignalWire API. This project provides a user-friendly interface for creating video rooms, managing call controls (mute/unmute audio/video), selecting media devices (microphones, cameras, speakers), and handling subscriber authentication.
+**SignalWire Call Fabric Client Beta** is a React-based web application designed to facilitate video conferencing and call management using the SignalWire API. This project provides a user-friendly interface for creating video rooms, managing a directory of callable addresses, handling subscriber authentication, and integrating with SignalWire's video conferencing capabilities.
 
 The application leverages modern web technologies such as React, TypeScript, Tailwind CSS, and the SignalWire Community SDK to deliver a seamless video conferencing experience.
 
@@ -25,11 +25,11 @@ The application leverages modern web technologies such as React, TypeScript, Tai
 ## Features
 
 - **Video Conferencing**: Create and join video rooms with customizable settings (e.g., room name, quality, layout).
-- **Call Controls**: Mute/unmute audio and video during calls.
-- **Device Selection**: Dynamically select microphones, cameras, and speakers.
-- **Subscriber Authentication**: Sign in or sign up as a subscriber using reference and password.
+- **Address Directory**: Manage a list of callable addresses per user, with options to add, delete, and call addresses.
+- **Subscriber Authentication**: Sign in or sign up as a subscriber using email, password, and name, with local storage persistence.
+- **Call Management**: Initiate and disconnect calls with real-time status updates.
 - **Responsive Design**: Built with Tailwind CSS for a modern, responsive UI.
-- **State Management**: Centralized call state management using React Context.
+- **State Management**: Centralized call and authentication state management using React Context.
 
 ---
 
@@ -61,6 +61,10 @@ Before you begin, ensure you have the following installed:
 4. **Run the development server**:
    ```bash
    npm run dev
+   ```
+   or
+   ```bash
+   npm start
    ```
    The app will be available at `http://localhost:5173` (or another port if specified).
 
@@ -97,10 +101,11 @@ Replace the placeholder values with your SignalWire credentials. These are requi
    Open your browser and navigate to `http://localhost:5173`.
 
 3. **Main Features**:
-    - **Call Console**: Enter a room name and username, then click "Dial" to start a video call.
-    - **Controls**: During a call, toggle audio/video mute states.
-    - **Device Select**: Choose your preferred microphone, camera, and speaker.
-    - **Subscriber Page**: Sign in or sign up as a subscriber.
+   - **Login/Register**: Navigate to `/login` to sign in or sign up with an email, password, and name.
+   - **Call Console**: Enter a room name (or select from the directory) and click "Dial" to start a video call.
+   - **Directory**: Add, delete, or call addresses stored locally for the authenticated user.
+   - **Call Page**: Join an active video call and end it when finished.
+   - **Subscriber Dashboard**: View user details and logout.
 
 4. **Build for production**:
    ```bash
@@ -115,10 +120,25 @@ Replace the placeholder values with your SignalWire credentials. These are requi
 call-fabric-client/
 ├── src/
 │   ├── components/         # Reusable React components
+│   │   ├── ButtonGroup.tsx
+│   │   ├── CallConsole.tsx
+│   │   ├── Directory.tsx
+│   │   ├── ListItem.tsx
+│   │   ├── Navbar.tsx
+│   │   └── SubscriberSignupSignin.tsx
 │   ├── pages/             # Page-level components
+│   │   ├── App.tsx
+│   │   ├── CallPage.tsx
+│   │   └── SubscriberPage.tsx
 │   ├── state/             # Context and state management
+│   │   ├── AuthState.tsx
+│   │   └── CallState.tsx
 │   ├── types/             # TypeScript type definitions
+│   │   ├── Address.ts
+│   │   ├── Call.ts
+│   │   └── User.ts
 │   ├── utils/             # Utility functions
+│   │   └── Prettify.ts
 │   ├── index.css          # Global styles
 │   └── main.tsx           # Entry point
 ├── public/                # Static assets
@@ -137,34 +157,34 @@ call-fabric-client/
 A reusable component that renders a group of buttons with customizable labels, click handlers, and styles.
 
 ### `CallConsole`
-The main interface for initiating and managing video calls, including room creation and disconnection.
+The main interface for initiating and managing video calls, including room creation and disconnection, with integration for address status updates.
 
-### `Controls`
-Provides buttons to mute/unmute audio and video during a call.
-
-### `DeviceSelect`
-Allows users to select their preferred media devices (microphones, cameras, speakers).
+### `Directory`
+A component for managing a user-specific list of callable addresses, with options to add, delete, and initiate calls.
 
 ### `ListItem`
-A styled list item component used in `DeviceSelect` for device selection.
+A styled list item component used in `Directory` and other lists for interactive elements.
 
 ### `Navbar`
 A navigation bar with links to the home and subscriber pages.
 
 ### `SubscriberSignupSignin`
-A form for subscriber authentication (signin/signup).
+A form for subscriber authentication (signin/signup) with email, password, and name fields.
 
 ### `App`
-The root component that sets up routing and renders the main layout.
+The root component that sets up routing, authentication, and call state management.
 
 ### `CallPage`
-Displays the active video call using SignalWire's `VideoConference` component.
+Displays the active video call using SignalWire's `VideoConference` component and handles call termination.
 
 ### `SubscriberPage`
-Handles subscriber authentication and user information display.
+Displays authenticated user information and provides a logout option.
 
 ### `CallProvider` / `useCall`
-Context and hook for managing call state across the application.
+Context and hook for managing call state (e.g., token, room name, user name) across the application.
+
+### `AuthProvider` / `useAuth`
+Context and hook for managing authentication state, including user login, registration, and logout.
 
 ---
 
@@ -178,12 +198,12 @@ Below is a placeholder for a diagram illustrating the application’s architectu
 
 ## Dependencies
 
-- **React**: Front-end library for building the UI.
-- **React Router**: For client-side routing.
-- **SignalWire Community SDK**: For video conferencing functionality.
-- **Axios**: For making HTTP requests to the SignalWire API.
-- **Tailwind CSS**: For styling the application.
-- **TypeScript**: For static typing and improved developer experience.
+- **React**: Front-end library for building the UI (v19.0.0).
+- **React Router**: For client-side routing (v7.3.0).
+- **SignalWire Community SDK**: For video conferencing functionality (v1.4.2).
+- **Axios**: For making HTTP requests to the SignalWire API (v1.8.2).
+- **Tailwind CSS**: For styling the application (v4.0.11).
+- **TypeScript**: For static typing and improved developer experience (v5.4).
 
 See `package.json` for the full list of dependencies.
 
