@@ -14,7 +14,7 @@ export const CallPage: React.FC = () => {
                 await roomSessionRef.current.leave();
             }
             handleDisconnect();
-            window.location.href = '/'; // This will force a full page reload
+            window.location.href = '/';
         } catch (error) {
             console.error('Error ending call:', error);
             handleDisconnect();

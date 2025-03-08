@@ -17,6 +17,7 @@ The application leverages modern web technologies such as React, TypeScript, Tai
 - [Components](#components)
 - [Diagram](#diagram)
 - [Dependencies](#dependencies)
+- [Identified Issues](#identified-issues)
 - [Contributing](#contributing)
 - [License](#license)
 
@@ -25,11 +26,11 @@ The application leverages modern web technologies such as React, TypeScript, Tai
 ## Features
 
 - **Video Conferencing**: Create and join video rooms with customizable settings (e.g., room name, quality, layout).
-- **Address Directory**: Manage a list of callable addresses per user, with options to add, delete, and call addresses.
-- **Subscriber Authentication**: Sign in or sign up as a subscriber using email, password, and name, with local storage persistence.
+- **Address Directory**: Manage a user-specific list of callable addresses, with options to add, delete, and call.
+- **Subscriber Authentication**: Sign in or sign up using email, password, and name, with local storage persistence.
 - **Call Management**: Initiate and disconnect calls with real-time status updates.
 - **Responsive Design**: Built with Tailwind CSS for a modern, responsive UI.
-- **State Management**: Centralized call and authentication state management using React Context.
+- **State Management**: Centralized call and authentication state using React Context.
 
 ---
 
@@ -61,10 +62,6 @@ Before you begin, ensure you have the following installed:
 4. **Run the development server**:
    ```bash
    npm run dev
-   ```
-   or
-   ```bash
-   npm start
    ```
    The app will be available at `http://localhost:5173` (or another port if specified).
 
@@ -206,6 +203,20 @@ Below is a placeholder for a diagram illustrating the application’s architectu
 - **TypeScript**: For static typing and improved developer experience (v5.4).
 
 See `package.json` for the full list of dependencies.
+
+---
+
+## Identified Issues
+
+During development, several issues and design decisions were noted:
+
+- **Local Storage Usage**: The application uses local storage for user authentication and address management because integration with a proper database requires `OAUTH_APPLICATION_ID` and `SAT_CH` for verification. These environment variables are defined in the `.env` file but are not yet fully utilized for server-side authentication due to the current beta scope. As a temporary solution, user data and addresses are persisted locally.
+
+- **Address Association and Cleanup**: Addresses in the `Directory` component are tied to the authenticated user in local storage. If local storage is cleared (e.g., via browser settings or logout), all associated addresses are lost. To mitigate potential errors, every successful call updates the address status to "used" in local storage, helping to track which addresses have been dialed and reduce duplicate call attempts.
+
+- **SignalWire SDK Choice**: The `@signalwire-community/react` package (v1.4.2) was chosen over `@signalwire/js` due to compatibility and stability issues encountered with the latter. The community package provides a more straightforward integration with React for video conferencing, though it may lack some lower-level control available in `@signalwire/js`.
+
+If additional errors or issues arise, feel free to contact me for further assistance or clarification.
 
 ---
 
