@@ -1,107 +1,36 @@
-import React, { useState } from 'react';
-import { SubscriberSignupSignin } from '../components/SubscriberSignupSignin.js';
-import { User } from '../types/User.js';
+import React from 'react';
+import { useAuth } from '../state/AuthState.js';
+import { Navigate } from 'react-router-dom';
 
-const PROJECT_ID = import.meta.env.VITE_PROJECT_ID;
-const API_TOKEN = import.meta.env.VITE_API_TOKEN;
-const SPACE_URL = import.meta.env.VITE_SPACE_URL;
-const OAUTH_APPLICATION_ID = import.meta.env.VITE_OAUTH_APPLICATION_ID;
-const SAT_CH = import.meta.env.VITE_SAT_CH;
+const SubscriberPage: React.FC = () => {
+    const { user, logout, isAuthenticated } = useAuth();
 
-interface TokenResponse {
-    token: string;
-}
-
-export const SubscriberPage: React.FC = () => {
-    const [user, setUser] = useState<User | null>(null);
-    const [error, setError] = useState<string | undefined>();
-    const [isLoading, setIsLoading] = useState(false);
-
-    const getSubscriberToken = async (reference: string, password: string): Promise<TokenResponse> => {
-        const tokenRequest = {
-            reference,
-            password,
-            application_id: OAUTH_APPLICATION_ID,
-            ch: SAT_CH,
-        };
-
-        const response = await fetch(
-            `https://${SPACE_URL}/api/fabric/subscribers/tokens`,
-            {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    Authorization: `Basic ${btoa(`${PROJECT_ID}:${API_TOKEN}`)}`,
-                },
-                body: JSON.stringify(tokenRequest),
-            }
-        );
-
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
-
-        return await response.json();
-    };
-
-    const getUserInfo = async (accessToken: string): Promise<User> => {
-        const response = await fetch(
-            process.env.REACT_APP_OAUTH_USERINFO_URI || '',
-            {
-                method: 'GET',
-                headers: {
-                    'Content-Type': 'application/json',
-                    Authorization: `Bearer ${accessToken}`,
-                },
-            }
-        );
-
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
-
-        return await response.json();
-    };
-
-    const handleSubmit = async (reference: string, password: string) => {
-        setIsLoading(true);
-        setError(undefined);
-
-        try {
-            const tokenData = await getSubscriberToken(reference, password);
-            const userInfo = await getUserInfo(tokenData.token);
-
-            localStorage.setItem('subscriberToken', tokenData.token);
-            setUser(userInfo);
-
-            window.location.href = '/';
-        } catch (err) {
-            setError(err instanceof Error ? err.message : 'An error occurred');
-        } finally {
-            setIsLoading(false);
-        }
-    };
+    if (!isAuthenticated) {
+        return <Navigate to="/login" />;
+    }
 
     return (
-        <div>
+        <div className="container mx-auto p-4">
+            <nav className="flex justify-between items-center mb-4">
+                <h1 className="text-2xl font-bold">Subscriber Dashboard</h1>
+                <button
+                    onClick={logout}
+                    className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600"
+                >
+                    Logout
+                </button>
+            </nav>
 
-            {user ? (
-                <div className="container mt-5">
-                    <h2>Welcome, {user.display_name}</h2>
-                    <p>Email: {user.email}</p>
-                    <button
-                        className="btn btn-danger"
-                        onClick={() => {
-                            localStorage.removeItem('subscriberToken');
-                            setUser(null);
-                        }}
-                    >
-                        Logout
-                    </button>
-                </div>
-            ) : (
-                <SubscriberSignupSignin onSubmit={handleSubmit} error={error} />
-            )}
+            <div className="bg-white p-6 rounded-lg shadow">
+                <h2 className="text-xl mb-4">User Information</h2>
+                <ul className="list-group">
+                    <li className="py-2">ID: {user?.id}</li>
+                    <li className="py-2">Email: {user?.email}</li>
+                    <li className="py-2">Token: {user?.token}</li>
+                </ul>
+            </div>
         </div>
     );
 };
+
+export default SubscriberPage;
