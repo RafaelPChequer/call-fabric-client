@@ -25,6 +25,7 @@ const SubscriberPage: React.FC = () => {
                 <h2 className="text-xl mb-4">User Information</h2>
                 <ul className="list-group">
                     <li className="py-2">ID: {user?.id}</li>
+                    <li className="py-2">Name: {user?.name}</li>
                     <li className="py-2">Email: {user?.email}</li>
                     <li className="py-2">Token: {user?.token}</li>
                 </ul>

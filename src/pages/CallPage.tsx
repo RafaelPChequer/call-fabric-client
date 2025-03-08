@@ -42,7 +42,7 @@ export const CallPage: React.FC = () => {
             <div className="container mx-auto py-5">
                 <p>No active call</p>
                 <button
-                    className="px-4 bg-red-900 text-white rounded"
+                    className="px-4 bg-red-900 text-white rounded hover:bg-red-800"
                     onClick={() => navigate('/')}
                 >
                     Main Menu

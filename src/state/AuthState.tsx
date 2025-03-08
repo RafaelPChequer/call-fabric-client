@@ -15,7 +15,7 @@ const usersDb = loadUsersFromStorage();
 interface AuthContextType {
     user: SessionUser | null;
     login: (email: string, password: string) => Promise<void>;
-    register: (email: string, password: string) => Promise<void>;
+    register: (email: string, password: string, name: string) => Promise<void>;
     logout: () => void;
     isAuthenticated: boolean;
 }
@@ -33,7 +33,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }, []);
 
     const hashPassword = (password: string): string => {
-        return btoa(password); // Codificação simples para teste (use bcrypt em produção)
+        return btoa(password);
     };
 
     const login = async (email: string, password: string) => {
@@ -48,6 +48,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 id: user.id,
                 email: user.email,
                 token: `token-${Math.random().toString(36).substr(2)}`,
+                name: user.name,
             };
             setUser(sessionUser);
             localStorage.setItem('user', JSON.stringify(sessionUser));
@@ -57,9 +58,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         throw new Error('Credenciais inválidas');
     };
 
-    const register = async (email: string, password: string) => {
+    const register = async (email: string, password: string, name: string) => {
         if (usersDb.has(email)) {
-            throw new Error('Email já registrado');
+            throw new Error('Email already registered');
         }
 
         const hashedPassword = hashPassword(password);
@@ -67,20 +68,22 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         const newUser: User = {
             id: userId,
             email,
+            name,
             password: hashedPassword,
         };
 
         usersDb.set(email, newUser);
-        saveUsersToStorage(usersDb); // Salva os usuários no localStorage
+        saveUsersToStorage(usersDb);
         const sessionUser: SessionUser = {
             id: userId,
             email,
             token: `token-${Math.random().toString(36).substr(2)}`,
+            name,
         };
         setUser(sessionUser);
         localStorage.setItem('user', JSON.stringify(sessionUser));
-        console.log('Usuário registrado:', newUser);
-        console.log('Todos os usuários:', Array.from(usersDb.entries()));
+        console.log('User registered:', newUser);
+        console.log('All users:', Array.from(usersDb.entries()));
     };
 
     const logout = () => {

@@ -1,30 +1,47 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useCall } from '../state/CallState.js';
+import { useAuth } from '../state/AuthState.js';
 
-export const CallConsole: React.FC = () => {
+interface CallConsoleProps {
+    onAddressStatusChange?: (username: string, address: string, status: 'used') => void;
+    refreshComponent?: () => void;
+}
+
+export const CallConsole: React.FC<CallConsoleProps> = ({ onAddressStatusChange, refreshComponent }) => {
     const [status, setStatus] = useState('Not Connected');
-    const [token, setToken] = useState<string | null>(null);
     const [roomName, setRoomName] = useState("my_video_room_" + Date.now());
-    const [userName, setUserName] = useState("João");
     const [errorMessage, setErrorMessage] = useState("");
     const { call, setCall, handleDisconnect } = useCall();
+    const { user } = useAuth();
     const navigate = useNavigate();
+    const location = useLocation();
 
     const PROJECT_ID = import.meta.env.VITE_PROJECT_ID;
     const API_TOKEN = import.meta.env.VITE_API_TOKEN;
     const SPACE_URL = import.meta.env.VITE_SPACE_URL;
 
     if (!PROJECT_ID || !API_TOKEN || !SPACE_URL) {
-        throw new Error("Variáveis de ambiente REACT_APP_PROJECT_ID, REACT_APP_API_TOKEN ou REACT_APP_SPACE_URL não estão definidas.");
+        throw new Error("Environment variables VITE_PROJECT_ID, VITE_API_TOKEN or VITE_SPACE_URL are not defined.");
     }
 
+    useEffect(() => {
+        if (location.state?.selectedAddress) {
+            setRoomName(location.state.selectedAddress);
+        }
+    }, [location.state]);
+
     const createRoomAndGetToken = async () => {
+        if (onAddressStatusChange && user?.name) {
+            console.log("Room: ", roomName);
+            onAddressStatusChange(user.name, roomName, 'used');
+        }
+
         try {
             const roomData = {
                 name: roomName,
-                display_name: "Minha Sala de Vídeo",
+                display_name: "My Video Room",
                 size: "medium",
                 quality: "1080p",
                 layout: "grid-responsive",
@@ -44,9 +61,7 @@ export const CallConsole: React.FC = () => {
 
             const roomResponse = await axios(roomConfig);
             const roomId = roomResponse.data.id;
-            console.log("Sala criada com ID:", roomId);
 
-            console.log("Obtendo token de convidado...");
             const tokenConfig = {
                 method: "get",
                 url: `${SPACE_URL}/api/video/conferences/${roomId}/conference_tokens`,
@@ -55,50 +70,47 @@ export const CallConsole: React.FC = () => {
                     password: API_TOKEN,
                 },
             };
-            console.log("tokenConfig", tokenConfig);
 
             const tokenResponse = await axios(tokenConfig);
-            console.log("tokenResponse", tokenResponse);
             const tokensArray = tokenResponse.data.data;
-            console.log("tokensArray", tokensArray);
 
             if (!Array.isArray(tokensArray)) {
-                throw new Error("A propriedade 'data' na resposta dos tokens não é um array.");
+                throw new Error("The 'data' property in the tokens response is not an array.");
             }
 
             const guestToken = tokensArray.find((t) => t.name === "Guest")?.token;
-            console.log("guestToken", guestToken);
             if (!guestToken) {
-                throw new Error("Token de convidado não encontrado na resposta.");
+                throw new Error("Guest token not found in the response.");
             }
 
-            setToken(guestToken);
             setStatus('Connected');
             setErrorMessage("");
-            setCall({ state: 'active', token: guestToken, roomName, userName });
-            console.log("CallPage is null, resetting state...");
+            setCall({ state: 'active', token: guestToken, roomName, userName: user?.name || "Guest" });
             navigate('/call');
-        } catch (error: unknown) {
-            console.error("Erro ao criar sala ou obter token:", error);
+        } catch (error) {
+            console.error("Error creating room or getting token:", error);
             if (axios.isAxiosError(error)) {
                 setErrorMessage(
                     error.response
-                        ? `Erro ${error.response.status}: ${JSON.stringify(error.response.data)}`
-                        : `Erro: ${error.message}`
+                        ? `Error ${error.response.status}: ${JSON.stringify(error.response.data)}`
+                        : `Error: ${error.message}`
                 );
             } else if (error instanceof Error) {
-                setErrorMessage(`Erro: ${error.message}`);
+                setErrorMessage(`Error: ${error.message}`);
             } else {
-                setErrorMessage("Erro desconhecido");
+                setErrorMessage("Unknown error");
+            }
+            if (refreshComponent) {
+                setTimeout(() => {
+                    refreshComponent();
+                }, 1000);
             }
         }
     };
 
     useEffect(() => {
         if (!call) {
-            console.log("CallPage is null, resetting state...");
             setStatus('Not Connected');
-            setToken(null);
             setErrorMessage('');
             setRoomName("my_video_room_" + Date.now());
         }
@@ -107,7 +119,6 @@ export const CallConsole: React.FC = () => {
     const onDisconnect = () => {
         handleDisconnect();
         setStatus('Not Connected');
-        setToken(null);
         setErrorMessage('');
         setRoomName("my_video_room_" + Date.now());
         navigate('/');
@@ -129,15 +140,12 @@ export const CallConsole: React.FC = () => {
                     />
                 </div>
                 <div className="block py-4">
-                    <label htmlFor="destination" className="form-label pr-4">
+                    <label htmlFor="username" className="form-label pr-4">
                         Username:
                     </label>
-                    <input
-                        type="text"
-                        className="form-control border border-gray-200 rounded"
-                        value={userName}
-                        onChange={(e) => setUserName(e.target.value)}
-                    />
+                    <span className="form-control border border-gray-200 rounded bg-gray-100 px-2 py-1">
+                        {user?.name || "Guest"}
+                    </span>
                 </div>
             </div>
             <div className="flex gap-2">
@@ -157,7 +165,20 @@ export const CallConsole: React.FC = () => {
                     </button>
                 )}
             </div>
-            {errorMessage && <p style={{ color: "red" }}>{errorMessage}</p>}
+            {errorMessage && (
+                <p
+                    style={{
+                        color: "red",
+                        maxHeight: "3rem",
+                        overflowY: "auto",
+                        marginTop: "0.5rem",
+                        whiteSpace: "pre-wrap",
+                        wordBreak: "break-word",
+                    }}
+                >
+                    {errorMessage}
+                </p>
+            )}
             <div className="text-center mt-3 text-gray-500">
                 <small>
                     Status: <span>{status}</span>

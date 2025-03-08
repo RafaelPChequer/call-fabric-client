@@ -1,5 +1,5 @@
-import React from 'react';
-import { BrowserRouter as Router, Route, Routes, Navigate } from 'react-router-dom';
+import React, { useState } from 'react'; // Add useState import
+import { BrowserRouter as Router, Route, Routes, Navigate, useNavigate } from 'react-router-dom';
 import { CallProvider } from '../state/CallState.js';
 import { AuthProvider, useAuth } from '../state/AuthState.js';
 import { Navbar } from '../components/Navbar.js';
@@ -7,9 +7,65 @@ import { CallConsole } from '../components/CallConsole.js';
 import { CallPage } from './CallPage.js';
 import SubscriberPage from './SubscriberPage.js';
 import SubscriberSignupSignin from '../components/SubscriberSignupSignin.js';
+import Directory from "../components/Directory.js";
 
 const AppContent: React.FC = () => {
     const { isAuthenticated } = useAuth();
+    const navigate = useNavigate();
+    const [refreshKey, setRefreshKey] = useState(0); // Add refreshKey state
+
+    const handleAddressSelect = (address: string, username: string) => {
+        navigate('/', { state: { selectedAddress: address, selectedUsername: username } });
+    };
+
+    interface Address {
+        address: string;
+        status: string;
+    }
+
+    const handleAddressStatusChange = (username: string, address: string, status: 'used') => {
+        console.log(`Address ${address} for ${username} changed to ${status}`);
+
+        const storedData = localStorage.getItem('userAddresses');
+        console.log(`Stored Data: ${storedData}`);
+
+        const userAddresses: [string, Address[]][] = storedData ? JSON.parse(storedData) : [];
+        console.log(`Parsed userAddresses:`, userAddresses);
+
+        let userEntry = userAddresses.find(([name]) => name === username);
+        console.log(`Found userEntry:`, userEntry);
+
+        if (!userEntry) {
+            userEntry = [username, []];
+            userAddresses.push(userEntry);
+            console.log(`Created new userEntry:`, userEntry);
+        }
+
+        const addresses: Address[] = userEntry[1];
+        console.log(`Addresses array:`, addresses);
+
+        const addressIndex = addresses.findIndex((addr) => {
+            console.log(`Comparing: ${addr.address} === ${address}`);
+            return addr.address === address;
+        });
+        console.log(`addressIndex: ${addressIndex}`);
+
+        if (addressIndex !== -1) {
+            addresses[addressIndex].status = status;
+            console.log(`Updated address at index: ${addressIndex}`);
+        } else {
+            addresses.push({ address, status });
+            console.log(`Added new address, index was: ${addressIndex}`);
+        }
+
+        localStorage.setItem('userAddresses', JSON.stringify(userAddresses));
+        console.log(`Saved to localStorage:`, localStorage.getItem('userAddresses'));
+    };
+
+    // Function to trigger refresh of CallConsole and Directory
+    const refreshComponents = () => {
+        setRefreshKey((prev) => prev + 1);
+    };
 
     return (
         <div className="bg-gray-100 min-h-screen">
@@ -24,7 +80,18 @@ const AppContent: React.FC = () => {
                             isAuthenticated ? (
                                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4 py-3">
                                     <div className="col-span-1">
-                                        <CallConsole />
+                                        <CallConsole
+                                            key={`call-console-${refreshKey}`}
+                                            onAddressStatusChange={handleAddressStatusChange}
+                                            refreshComponent={refreshComponents}
+                                        />
+                                    </div>
+                                    <div className="col-span-1">
+                                        <Directory
+                                            key={`directory-${refreshKey}`}
+                                            onSelectAddress={handleAddressSelect}
+                                            onAddressStatusChange={handleAddressStatusChange}
+                                        />
                                     </div>
                                 </div>
                             ) : (
@@ -50,9 +117,11 @@ const AppContent: React.FC = () => {
 export const App: React.FC = () => {
     return (
         <CallProvider>
-            <Router>
-                <AppContent />
-            </Router>
+            <AuthProvider>
+                <Router>
+                    <AppContent />
+                </Router>
+            </AuthProvider>
         </CallProvider>
     );
 };

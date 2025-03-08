@@ -5,6 +5,7 @@ import { useNavigate } from 'react-router-dom';
 const SubscriberSignupSignin: React.FC = () => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
+    const [name, setName] = useState('');  // Added name state
     const [isLogin, setIsLogin] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const { login, register } = useAuth();
@@ -18,7 +19,7 @@ const SubscriberSignupSignin: React.FC = () => {
             if (isLogin) {
                 await login(email, password);
             } else {
-                await register(email, password);
+                await register(email, password, name);
             }
             navigate('/');
         } catch (err) {
@@ -53,6 +54,22 @@ const SubscriberSignupSignin: React.FC = () => {
                             required
                         />
                     </div>
+
+                    {!isLogin && (  // Only show name field during registration
+                        <div className="mb-4">
+                            <label htmlFor="name" className="block text-sm font-medium mb-1">
+                                Name
+                            </label>
+                            <input
+                                type="text"
+                                id="name"
+                                value={name}
+                                onChange={(e) => setName(e.target.value)}
+                                className="w-full p-2 border border-gray-300 rounded"
+                                required
+                            />
+                        </div>
+                    )}
 
                     <div className="mb-6">
                         <label htmlFor="password" className="block text-sm font-medium mb-1">
