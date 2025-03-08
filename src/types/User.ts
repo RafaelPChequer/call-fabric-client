@@ -19,3 +19,15 @@ export type SessionUser = Prettify<{
   name: string;
   token: string;
 }>;
+
+export type Call = Prettify<{
+  state: string;
+  token: string;
+  roomName: string;
+  userName: string;
+}>;
+
+export type CallClient = {
+  disconnect?: () => void;
+  // TODO
+};

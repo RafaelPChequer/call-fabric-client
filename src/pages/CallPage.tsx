@@ -3,10 +3,14 @@ import { useNavigate } from 'react-router-dom';
 import { VideoConference } from '@signalwire-community/react';
 import { useCall } from '../state/CallState.js';
 
+interface RoomSession {
+    leave: () => Promise<void>;
+}
+
 export const CallPage: React.FC = () => {
     const { call, handleDisconnect } = useCall();
     const navigate = useNavigate();
-    const roomSessionRef = useRef<any>(null);
+    const roomSessionRef = useRef<RoomSession | null>(null);
 
     const onEndCall = async () => {
         try {
@@ -30,7 +34,7 @@ export const CallPage: React.FC = () => {
 
         return () => {
             if (roomSessionRef.current) {
-                roomSessionRef.current.leave().catch((error: any) => {
+                roomSessionRef.current.leave().catch((error: Error) => {
                     console.error('Error during cleanup:', error);
                 });
             }

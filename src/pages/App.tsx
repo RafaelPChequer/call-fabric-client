@@ -12,7 +12,7 @@ import Directory from "../components/Directory.js";
 const AppContent: React.FC = () => {
     const { isAuthenticated } = useAuth();
     const navigate = useNavigate();
-    const [refreshKey, setRefreshKey] = useState(0); // Add refreshKey state
+    const [refreshKey, setRefreshKey] = useState(0);
 
     const handleAddressSelect = (address: string, username: string) => {
         navigate('/', { state: { selectedAddress: address, selectedUsername: username } });
@@ -62,7 +62,6 @@ const AppContent: React.FC = () => {
         console.log(`Saved to localStorage:`, localStorage.getItem('userAddresses'));
     };
 
-    // Function to trigger refresh of CallConsole and Directory
     const refreshComponents = () => {
         setRefreshKey((prev) => prev + 1);
     };

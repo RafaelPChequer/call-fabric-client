@@ -5,7 +5,7 @@ import { useNavigate } from 'react-router-dom';
 const SubscriberSignupSignin: React.FC = () => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
-    const [name, setName] = useState('');  // Added name state
+    const [name, setName] = useState('');
     const [isLogin, setIsLogin] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const { login, register } = useAuth();
@@ -55,7 +55,7 @@ const SubscriberSignupSignin: React.FC = () => {
                         />
                     </div>
 
-                    {!isLogin && (  // Only show name field during registration
+                    {!isLogin && (
                         <div className="mb-4">
                             <label htmlFor="name" className="block text-sm font-medium mb-1">
                                 Name

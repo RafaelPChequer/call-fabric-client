@@ -1,17 +1,11 @@
 import React, { createContext, useContext, useState, ReactNode } from 'react';
-
-interface Call {
-    state: string;
-    token: string;
-    roomName: string;
-    userName: string;
-}
+import { Call, CallClient } from '../types/User.js';
 
 interface CallContextType {
     call: Call | null;
     setCall: (call: Call | null) => void;
-    client: any;
-    setClient: (client: any) => void;
+    client: CallClient | null;
+    setClient: (client: CallClient | null) => void;
     handleDisconnect: () => void;
 }
 
@@ -19,7 +13,7 @@ const CallState = createContext<CallContextType | undefined>(undefined);
 
 export const CallProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
     const [call, setCall] = useState<Call | null>(null);
-    const [client, setClient] = useState<any>(null);
+    const [client, setClient] = useState<CallClient | null>(null);
 
     const handleDisconnect = () => {
         setCall(null);
@@ -33,7 +27,7 @@ export const CallProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     );
 };
 
-export const useCall = () => {
+export const useCall = (): CallContextType => {
     const context = useContext(CallState);
     if (!context) {
         throw new Error('useCall must be used within a CallProvider');
