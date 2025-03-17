@@ -15,19 +15,17 @@ const SubscriberPage: React.FC = () => {
                 <h1 className="text-2xl font-bold">Subscriber Dashboard</h1>
                 <button
                     onClick={logout}
-                    className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600"
+                    className="px-4 py-2 bg-red-900 text-white rounded hover:bg-red-800"
                 >
                     Logout
                 </button>
             </nav>
 
-            <div className="bg-white p-6 rounded-lg shadow">
-                <h2 className="text-xl mb-4">User Information</h2>
+            <div className="bg-white p-6 rounded-lg border border-gray-300">
+                <h2 className="text-xl font-bold mb-4">User Information</h2>
                 <ul className="list-group">
                     <li className="py-2">ID: {user?.id}</li>
                     <li className="py-2">Name: {user?.name}</li>
-                    <li className="py-2">Email: {user?.email}</li>
-                    <li className="py-2">Token: {user?.token}</li>
                 </ul>
             </div>
         </div>

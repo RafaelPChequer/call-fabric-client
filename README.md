@@ -210,10 +210,6 @@ See `package.json` for the full list of dependencies.
 
 During development, several issues and design decisions were noted:
 
-- **Local Storage Usage**: The application uses local storage for user authentication and address management because integration with a proper database requires `OAUTH_APPLICATION_ID` and `SAT_CH` for verification. These environment variables are defined in the `.env` file but are not yet fully utilized for server-side authentication due to the current beta scope. As a temporary solution, user data and addresses are persisted locally.
-
-- **Address Association and Cleanup**: Addresses in the `Directory` component are tied to the authenticated user in local storage. If local storage is cleared (e.g., via browser settings or logout), all associated addresses are lost. To mitigate potential errors, every successful call updates the address status to "used" in local storage, helping to track which addresses have been dialed and reduce duplicate call attempts.
-
 - **SignalWire SDK Choice**: The `@signalwire-community/react` package (v1.4.2) was chosen over `@signalwire/js` due to compatibility and stability issues encountered with the latter. The community package provides a more straightforward integration with React for video conferencing, though it may lack some lower-level control available in `@signalwire/js`.
 
 If additional errors or issues arise, feel free to contact me for further assistance or clarification.
